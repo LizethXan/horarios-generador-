@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de horarios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .right-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dias-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dia-checkbox input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .profesores-list {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+        }
+
+        .profesor-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .profesor-item:hover {
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .profesor-item.selected {
+            background: #e3f2fd;
+            border-left-color: #2196F3;
+        }
+
+        .horario-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .horario-selector select {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .horario-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .horario-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .horario-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 11px;
+            vertical-align: middle;
+            height: 60px;
+        }
+
+        .horario-table td.hora {
+            background: #f5f5f5;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .materia-algebra { background: #FFB6C1 !important; }
+        .materia-calculo { background: #98FB98 !important; }
+        .materia-poo { background: #87CEEB !important; }
+        .materia-eda { background: #DDA0DD !important; }
+
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Generador de Horarios</h1>
+            <p> </p>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <h2 class="section-title">Agregar Profesores</h2>
+                
+                <div class="form-group">
+                    <label for="materia">Materia:</label>
+                    <select id="materia">
+                        <option value="Álgebra Lineal">Álgebra Lineal</option>
+                        <option value="Ecuaciones diferenciales">Ecuaciones diferenciales</option>
+                        <option value="Cálculo vectorial">Cálculo vectorial</option>
+                        <option value="Cinematica y dinamica">Cinematica y dinamica</option>
+                        <option value="Mecanica de solidos">Mecanica de solidos</option>
+                        <option value="Dibujo">Dibujo</option>
+                        <option value="Optativa">Optativa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="profesor">Profesor:</label>
+                    <input type="text" id="profesor" placeholder="Nombre del profesor">
+                </div>
+
+                <div class="form-group">
+                    <label for="grupo">Grupo:</label>
+                    <input type="text" id="grupo" placeholder="Ej: A, B, 1, 2">
+                </div>
+
+                <div class="form-group">
+                    <label>Días de la semana:</label>
+                    <div class="dias-container">
+                        <div class="dia-checkbox">
+                            <input type="checkbox" id="lunes" value="Lunes">
+                            <label for="lunes">Lun</label>
+                        </div>
+                        <div class="dia-checkbox">
+                            <input type="checkbox" id="martes" value="Martes">
+                            <label for="martes">Mar</label>
+                        </div>
+                        <div class="dia-checkbox">
+                            <input type="checkbox" id="miercoles" value="Miércoles">
+                            <label for="miercoles">Mié</label>
+                        </div>
+                        <div class="dia-checkbox">
+                            <input type="checkbox" id="jueves" value="Jueves">
+                            <label for="jueves">Jue</label>
+                        </div>
+                        <div class="dia-checkbox">
+                            <input type="checkbox" id="viernes" value="Viernes">
+                            <label for="viernes">Vie</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="horaInicio">Hora de inicio:</label>
+                    <input type="time" id="horaInicio" value="08:00">
+                </div>
+
+                <div class="form-group">
+                    <label for="horaFin">Hora de fin:</label>
+                    <input type="time" id="horaFin" value="10:00">
+                </div>
+
+                <button class="btn btn-primary" onclick="agregarProfesor()">+ Agregar Profesor</button>
+
+                <h3 style="margin-top: 25px; margin-bottom: 15px; color: #333;">Profesores Agregados:</h3>
+                <div id="profesoresList" class="profesores-list"></div>
+                
+                <button class="btn btn-danger" onclick="eliminarSeleccionado()" style="margin-top: 10px;">🗑️ Eliminar Seleccionado</button>
+                
+                <button class="btn btn-generate" onclick="generarHorarios()">Generar Horarios</button>
+            </div>
+
+            <div class="right-panel">
+                <h2 class="section-title">Horarios Generados</h2>
+                
+                <div class="horario-selector">
+                    <label for="horarioSelect">Seleccionar horario:</label>
+                    <select id="horarioSelect" onchange="mostrarHorario()">
+                        <option value="">Primero genera horarios</option>
+                    </select>
+                </div>
+
+                <div id="horarioContainer">
+                    <div style="text-align: center; padding: 50px; color: #666;">
+                        <h3>Instrucciones:</h3>
+                        <p>1. Agrega profesores para las  materias</p>
+                        <p>2. Haz clic en "Generar Horarios"</p>
+                        <p>3. Selecciona el horario</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <script>
+        let profesores = {};
+        let horariosGenerados = [];
+        let profesorSeleccionado = null;
+
+        const materias = ["Álgebra Lineal", "Ecuaciones diferenciales", "Cálculo vectorial", "Cinematica y dinamica", "Mecanica de solidos", "Dibujo", "Optativa"];
+        const coloresMateria = {
+            "Álgebra Lineal": "materia-algebra",
+            "Ecuaciones diferenciales": "materia-ecuaciones diferenciales",
+            "Cálculo vectorial": "materia-calculo vectorial",
+            "Cinematica y dinamica": "materia-cinematica"
+            "Mecanica de solidos": "materia-Mecanica de solidos"
+            "Dibujo": "materia-Dibujo"
+            "Optativa": "materia-Optativa"
+        };
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.getElementById('alertContainer');
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 4000);
+        }
+
+        function agregarProfesor() {
+            const materia = document.getElementById('materia').value;
+            const profesor = document.getElementById('profesor').value.trim();
+            const grupo = document.getElementById('grupo').value.trim();
+            const horaInicio = document.getElementById('horaInicio').value;
+            const horaFin = document.getElementById('horaFin').value;
+
+            if (!profesor || !grupo || !horaInicio || !horaFin) {
+                showAlert('Todos los campos son obligatorios', 'error');
+                return;
+            }
+
+            const diasSeleccionados = [];
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            checkboxes.forEach(cb => diasSeleccionados.push(cb.value));
+
+            if (diasSeleccionados.length === 0) {
+                showAlert('Debe seleccionar al menos un día', 'error');
+                return;
+            }
+
+            if (horaInicio >= horaFin) {
+                showAlert('La hora de inicio debe ser menor que la hora de fin', 'error');
+                return;
+            }
+
+            if (!profesores[materia]) {
+                profesores[materia] = [];
+            }
+
+            profesores[materia].push({
+                profesor,
+                grupo,
+                dias: diasSeleccionados,
+                horaInicio,
+                horaFin
+            });
+
+            actualizarListaProfesores();
+            limpiarFormulario();
+            showAlert(`Profesor agregado a ${materia}`, 'success');
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('profesor').value = '';
+            document.getElementById('grupo').value = '';
+            document.getElementById('horaInicio').value = '08:00';
+            document.getElementById('horaFin').value = '10:00';
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        function actualizarListaProfesores() {
+            const lista = document.getElementById('profesoresList');
+            lista.innerHTML = '';
+
+            Object.entries(profesores).forEach(([materia, profs]) => {
+                profs.forEach((prof, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'profesor-item';
+                    div.innerHTML = `
+                        <strong>${materia}</strong><br>
+                        ${prof.profesor} (Grupo ${prof.grupo})<br>
+                        <small>${prof.dias.join(', ')} - ${prof.horaInicio} a ${prof.horaFin}</small>
+                    `;
+                    div.onclick = () => seleccionarProfesor(div, materia, index);
+                    lista.appendChild(div);
+                });
+            });
+        }
+
+        function seleccionarProfesor(elemento, materia, index) {
+            document.querySelectorAll('.profesor-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            elemento.classList.add('selected');
+            profesorSeleccionado = { materia, index };
+        }
+
+        function eliminarSeleccionado() {
+            if (!profesorSeleccionado) {
+                showAlert('Seleccione un profesor para eliminar', 'warning');
+                return;
+            }
+
+            const { materia, index } = profesorSeleccionado;
+            profesores[materia].splice(index, 1);
+            
+            if (profesores[materia].length === 0) {
+                delete profesores[materia];
+            }
+
+            profesorSeleccionado = null;
+            actualizarListaProfesores();
+            showAlert('Profesor eliminado', 'success');
+        }
+
+        function hayConflicto(horario1, horario2) {
+            const [materia1, datos1] = horario1;
+            const [materia2, datos2] = horario2;
+
+            if (materia1 === materia2) return false;
+
+            const diasComunes = datos1.dias.filter(dia => datos2.dias.includes(dia));
+            if (diasComunes.length === 0) return false;
+
+            const inicio1 = new Date('2000-01-01 ' + datos1.horaInicio);
+            const fin1 = new Date('2000-01-01 ' + datos1.horaFin);
+            const inicio2 = new Date('2000-01-01 ' + datos2.horaInicio);
+            const fin2 = new Date('2000-01-01 ' + datos2.horaFin);
+
+            return !(fin1 <= inicio2 || fin2 <= inicio1);
+        }
+
+        function generarHorarios() {
+            const materiasConProfesores = Object.keys(profesores);
+            
+            if (materiasConProfesores.length !== 4) {
+                showAlert('Debe agregar profesores para las 4 materias', 'error');
+                return;
+            }
+
+            const materiasFaltantes = materias.filter(m => !materiasConProfesores.includes(m));
+            if (materiasFaltantes.length > 0) {
+                showAlert(`Faltan profesores para: ${materiasFaltantes.join(', ')}`, 'error');
+                return;
+            }
+
+            const combinaciones = [];
+            materias.forEach(materia => {
+                combinaciones.push(profesores[materia].map(prof => [materia, prof]));
+            });
+
+            const horariosValidos = [];
+            
+            function generarCombinaciones(arrays, i = 0, actual = []) {
+                if (i === arrays.length) {
+                    let valido = true;
+                    for (let j = 0; j < actual.length; j++) {
+                        for (let k = j + 1; k < actual.length; k++) {
+                            if (hayConflicto(actual[j], actual[k])) {
+                                valido = false;
+                                break;
+                            }
+                        }
+                        if (!valido) break;
+                    }
+                    if (valido) {
+                        horariosValidos.push([...actual]);
+                    }
+                    return;
+                }
+
+                arrays[i].forEach(elemento => {
+                    generarCombinaciones(arrays, i + 1, [...actual, elemento]);
+                });
+            }
+
+            generarCombinaciones(combinaciones);
+
+            if (horariosValidos.length === 0) {
+                showAlert('No se pudieron generar horarios sin conflictos', 'error');
+                return;
+            }
+
+            horariosGenerados = horariosValidos;
+            actualizarSelectorHorarios();
+            showAlert(`¡Éxito! Se generaron ${horariosValidos.length} horarios válidos`, 'success');
+        }
+
+        function actualizarSelectorHorarios() {
+            const selector = document.getElementById('horarioSelect');
+            selector.innerHTML = '';
+            
+            horariosGenerados.forEach((_, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `Horario ${index + 1}`;
+                selector.appendChild(option);
+            });
+
+            if (horariosGenerados.length > 0) {
+                selector.value = 0;
+                mostrarHorario();
+            }
+        }
+
+        function mostrarHorario() {
+            const selector = document.getElementById('horarioSelect');
+            const indice = parseInt(selector.value);
+            
+            if (isNaN(indice) || !horariosGenerados[indice]) return;
+
+            const horario = horariosGenerados[indice];
+            const container = document.getElementById('horarioContainer');
+
+            const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+            const horas = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+
+            let html = '<table class="horario-table"><thead><tr><th>Hora</th>';
+            dias.forEach(dia => {
+                html += `<th>${dia}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            horas.forEach(hora => {
+                html += `<tr><td class="hora">${hora}</td>`;
+                dias.forEach(dia => {
+                    let contenido = '';
+                    let clase = '';
+                    
+                    horario.forEach(([materia, datos]) => {
+                        if (datos.dias.includes(dia)) {
+                            const inicio = new Date('2000-01-01 ' + datos.horaInicio);
+                            const fin = new Date('2000-01-01 ' + datos.horaFin);
+                            const actual = new Date('2000-01-01 ' + hora);
+                            
+                            if (actual >= inicio && actual < fin) {
+                                contenido = `<strong>${materia}</strong><br>${datos.profesor}<br>(Grupo ${datos.grupo})`;
+                                clase = coloresMateria[materia];
+                            }
+                        }
+                    });
+                    
+                    html += `<td class="${clase}">${contenido}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
